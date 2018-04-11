@@ -1,0 +1,15 @@
+{
+  "name": "visualization-extension",
+  "version": "1.0",
+  "description": "A vishalization extension",
+  "manifest_version": 2,
+  "browser_action": {
+    "default_icon": {
+      "16": "src/assets/icon.png",
+      "24": "src/assets/icon.png",
+      "32": "src/assets/icon.png"
+    },
+    "default_title": "visualization-extension",
+    "default_popup": "src/html/popup.html"
+  }
+}
