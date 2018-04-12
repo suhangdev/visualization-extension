@@ -11,5 +11,19 @@
     },
     "default_title": "visualization-extension",
     "default_popup": "src/html/popup.html"
-  }
+  },
+  "background": {
+    "scripts": ["src/js/jquery-3.3.1.min.js", "src/js/eventPage.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*","https://*/*"],
+      "css": ["src/css/content.css"],
+      "js": ["src/js/jquery-3.3.1.min.js", "src/js/content.js"]
+    }
+  ],
+  "permissions": [
+    "tabs"
+  ]
 }
