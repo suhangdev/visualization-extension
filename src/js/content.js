@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener(
                     event.stopPropagation();
                     $(this).css("box-shadow", "none");
                 })
-            } else {
-                $("body").find("*").unbind("mouseenter").unbind("mouseout").unbind("click");
-            }
+        } else {
+            $("body").find("*").unbind("mouseenter").unbind("mouseout").unbind("click");
+        }
     });

@@ -18,4 +18,8 @@ if (bg) {
         }
         console.log(bg.flags)
     })
+    $('#reload').click(() => {
+        $('#btn').html('打开')
+        bg.reloadTab()
+    })
 }
