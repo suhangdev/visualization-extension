@@ -24,12 +24,9 @@ chrome.runtime.onMessage.addListener(
                         for(let i = 0; i < $(this)[0].rows.length; i++){ //遍历表格的行
                             for(let j = 0; j < $(this)[0].rows[i].cells.length; j++){  //遍历每行的列
                                 if (j === 0) {
-                                    let html = $($(this)[0].rows[i].cells[j]);
-                                    yAxis.push(html.find('a')[0].innerHTML)
+                                    yAxis.push($(this)[0].rows[i].cells[j].innerText);
                                 } else if (j === 1) {
-                                    let arr = $(this)[0].rows[i].cells[j].innerHTML.split('<i');
-                                    $(this)[0].rows[i].cells[j].innerHTML = arr[0];
-                                    data.push(parseInt(arr[0]))
+                                    data.push(parseInt($(this)[0].rows[i].cells[j].innerText))
                                 }
                             }
                         }
@@ -53,7 +50,7 @@ chrome.runtime.onMessage.addListener(
                         },
                         yAxis: {
                             type: 'category',
-                            data: yAxis
+                            data: yAxis.reverse()
                         },
                         grid: {
                             containLabel: true
