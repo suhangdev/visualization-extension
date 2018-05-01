@@ -1,25 +1,30 @@
-let bg = chrome.extension.getBackgroundPage()
+let bg = chrome.extension.getBackgroundPage();
 if (bg) {
-    if (bg.flags.status === 0) {
-        $('#btn').html('打开')
-    } else {
-        $('#btn').html('关闭')
+    if (bg.flags.status === 'cloud') {
+        $('#cloud').css({'background': '#fa5050'});
+    } else if (bg.flags.status === 'chart') {
+        $('#chart').css({'background': '#fa5050'});
     }
-    $('#btn').click(() => {
-        console.log(bg)
-        if (bg.flags.status === 0) {
-            bg.flags.status = 1
-            bg.sendMsg()
-            $('#btn').html('关闭')
+    $('#cloud').click(() => {
+        if (bg.flags.status === 'cloud') {
+            $('#cloud').css({'background': '#409EFF'});
+            bg.reloadTab()
         } else {
-            bg.flags.status = 0
-            bg.sendMsg()
-            $('#btn').html('打开')
+            bg.flags.status = 'cloud';
+            $('#cloud').css({'background': '#fa5050'});
+            $('#chart').css({'background': '#409EFF'});
+            bg.sendMsg();
         }
-        console.log(bg.flags)
-    })
-    $('#reload').click(() => {
-        $('#btn').html('打开')
-        bg.reloadTab()
+    });
+    $('#chart').click(() => {
+        if (bg.flags.status === 'chart') {
+            $('#chart').css({'background': '#409EFF'});
+            bg.reloadTab()
+        } else {
+            bg.flags.status = 'chart';
+            $('#chart').css({'background': '#fa5050'});
+            $('#cloud').css({'background': '#409EFF'});
+            bg.sendMsg();
+        }
     })
 }

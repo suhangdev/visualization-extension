@@ -2,91 +2,79 @@ chrome.runtime.onMessage.addListener(
     function(req, sender, sendResponse) {
         console.log(req);
         body = $('body');
-        // if(req.status){
-        //     body.find("table").css({"box-shadow":"0 0 5px 1px #3AB2FF", "cursor": "pointer"});
-        //     body.find("table").mouseenter(function(){
-        //         event.stopPropagation();
-        //         $(this).one("click", function(){
-        //             event.stopPropagation();
-        //             $(this).parent().attr('id', 'chart');
-        //             $(this).parent().empty();
-        //             $('#chart').css({'width': '100%', 'height': '1000px'});
-        //             let chart = echarts.init(document.getElementById('chart'));
-        //             let head = [];
-        //             let data = [];
-        //             let yAxis = [];
-        //             let table = $(this);
-        //             table.find('thead').find('th').each(function () {
-        //                 head.push($(this).text());
-        //             });
-        //             console.log(table.find('tbody'));
-        //             table.find('tbody').each(function () {
-        //                 for(let i = 0; i < $(this)[0].rows.length; i++){ //遍历表格的行
-        //                     for(let j = 0; j < $(this)[0].rows[i].cells.length; j++){  //遍历每行的列
-        //                         if (j === 0) {
-        //                             yAxis.push($(this)[0].rows[i].cells[j].innerText);
-        //                         } else if (j === 1) {
-        //                             data.push(parseInt($(this)[0].rows[i].cells[j].innerText))
-        //                         }
-        //                     }
-        //                 }
-        //             });
-        //             console.log(yAxis);
-        //             console.log(data);
-        //             option = {
-        //                 tooltip: {
-        //                     trigger: 'axis',
-        //                     axisPointer: {
-        //                         type: 'shadow'
-        //                     }
-        //                 },
-        //                 xAxis: {
-        //                     type: 'value',
-        //                     boundaryGap: [0, 0.01],
-        //                     axisLabel : {//坐标轴刻度标签的相关设置。
-        //                         interval:0,
-        //                         rotate:"45"
-        //                     }
-        //                 },
-        //                 yAxis: {
-        //                     type: 'category',
-        //                     data: yAxis.reverse()
-        //                 },
-        //                 grid: {
-        //                     containLabel: true
-        //                 },
-        //                 series: [
-        //                     {
-        //                         type: 'bar',
-        //                         data: data.reverse(),
-        //                     }
-        //                 ]
-        //             };
-        //             chart.setOption(option);
-        //             return false;
-        //         })
-        //     });
-        //     body.find("*").mouseout(function(){
-        //         event.stopPropagation();
-        //         $(this).css("box-shadow", "none");
-        //     })
-        // } else {
-        //     $("body").find("*").unbind("mouseenter").unbind("mouseout").unbind("click");
-        // }
-        if(req.status) {
+        if(req.status === 'chart') {
             $(window).scroll(function(event){
                 $('a,div,li').removeAttr('href');
             });
             $('a,div,li').removeAttr('href');
             let data = [];
             let title = [];
+            let table = [];
             let classArr = [];
             let index = 0;
             let flag = '';
             $(document).click(function (e) {
                 data = [];
                 title = [];
-                findClass($(e.target));
+                console.log(data);
+                console.log(title);
+                $('html,body').attr('id', 'ovfHiden');
+                if ($(e.target).attr('id') === 'modal-bg') {
+                    $('html,body').attr('id', '');
+                    $('#modal').remove();
+                } else if (e.target.tagName === 'CANVAS') {
+                } else {
+                    findClass($(e.target)); // get data
+                    $('body').append($(`
+                    <div id="modal">
+                        <div id="modal-bg"></div>
+                        <div id="modal-content">
+                        </div>
+                    </div>`));
+                    for (let i = 0; i < data.length; i++) {
+                        for (let j = 0; j < data.length - i; j++) {
+                            if (data[j] > data[j + 1]) {
+                                let temp1 = data[j];
+                                data[j] = data[j + 1];
+                                data[j + 1] = temp1;
+                                let temp2 = title[j];
+                                title[j] = title[j + 1];
+                                title[j + 1] = temp2;
+                            }
+                        }
+                    }
+                    let chart = echarts.init(document.getElementById('modal-content'));
+                    option = {
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            }
+                        },
+                        xAxis: {
+                            type: 'value',
+                            boundaryGap: [0, 0.01],
+                            axisLabel : {//坐标轴刻度标签的相关设置。
+                                interval:0,
+                                rotate:"45"
+                            }
+                        },
+                        yAxis: {
+                            type: 'category',
+                            data: title
+                        },
+                        grid: {
+                            containLabel: true
+                        },
+                        series: [
+                            {
+                                type: 'bar',
+                                data: data
+                            }
+                        ]
+                    };
+                    chart.setOption(option);
+                }
             });
             function findClass(node) {
                 if (node.attr('class')) {
@@ -108,8 +96,6 @@ chrome.runtime.onMessage.addListener(
                         let temp = $(classArr[index]);
                         buildDataArr(temp)
                     }
-                    console.log(data);
-                    console.log(title);
                 }
                 else if (node.siblings().attr('class')){
                     flag = 'siblings';
@@ -128,7 +114,7 @@ chrome.runtime.onMessage.addListener(
             }
             function buildDataArr(jqObj) {
                 for (let i = 0; i < jqObj.length; i++) {
-                    data.push(jqObj[i].innerText.replace(/[^\d.]/g,''));
+                    data.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g,'')));
                     buildTitleArr($(jqObj[i]));
                 }
             }
@@ -142,53 +128,86 @@ chrome.runtime.onMessage.addListener(
                 }
             }
         }
-        // if(req.status) {
-        //     let classArr = [];
-        //     let index = 0;
-        //     $('a,div,li').removeAttr('href');
-        //     $(document).click(function (e) {
-        //         findClass($(e.target));
-        //     });
-        //     function findClass(node) {
-        //         if (node.attr('class')) {
-        //             classArr = getStandardClass(node.attr('class').split(' '));
-        //             for (let i = 0; i < classArr.length; i++) {
-        //                 if ($(classArr[i]).length < $(classArr[index]).length) {
-        //                     index = i;
-        //                 }
-        //             }
-        //             console.log(classArr[index]); // 找到最小个数的类名
-        //             console.log($(classArr[index]).text())
-        //         }
-        //         // else if (node.siblings().attr('class')){
-        //         //     findClass(node.siblings());
-        //         // }
-        //         else {
-        //             findClass(node.parent());
-        //         }
-        //     }
-        //     function getStandardClass(arr) {
-        //         for (let i = 0; i < arr.length; i++) {
-        //             arr[i] = `.${arr[i]}`;
-        //         }
-        //         return arr
-        //     }
-        // }
-        // if(req.status) {
-        //     findData($('body'));
-        //     function findData(node) {
-        //         if (node.children().length > 0) {
-        //             let arr = [];
-        //             for(let i = 0; i < node.length; i++) {
-        //                 if (node.attr('class')) {
-        //                     arr.push(node.attr('class'))
-        //                 }
-        //             }
-        //             console.log(arr);
-        //             findData(node.children())
-        //         } else {
-        //             // console.log(node)
-        //         }
-        //     }
-        // }
+        if(req.status === 'cloud') {
+            let dataArr = [];
+            let strArr = [];
+            let count = 0;
+            $(window).scroll(function(event){
+                $('a,div,li').removeAttr('href');
+            });
+            $('a,div,li').removeAttr('href');
+            $(document).click(function (e) {
+                strArr = [];
+                dataArr = [];
+                $('html,body').attr('id', 'ovfHiden');
+                if ($(e.target).attr('id') === 'modal-bg') {
+                    $('html,body').attr('id', '');
+                    $('#modal').remove();
+                } else if (e.target.tagName === 'text' || e.target.tagName === 'svg' || $(e.target).attr('id') === 'modal-content') {
+                } else {
+                    let str = e.target.innerText.replace(/[&\|\\\*^.,【】，!！。:“”%$#@\-]/g," ");
+                    let reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
+                    if (reg.test(str)) {
+                        str.replace(/[&\|\\\*^.,【】，!！()（）。:“”%$#@\-]\d+/g,"");
+                        for (let i = 0; i < str.length; i++) {
+                            strArr.push(str[i])
+                        }
+                    } else {
+                        str.replace(/[&\|\\\*^.,【】，!():"%$#@\-]\d+/g," ");
+                        strArr = str.split(" ")
+                    }
+                    for (let i = 0; i < strArr.length; i++) {
+                        count = 0;
+                        for(let j = 0; j < strArr.length; j++) {
+                            if (strArr[i] === strArr[j]) {
+                                count++
+                            }
+                        }
+                        dataArr.push({text: strArr[i], size: count * 30})
+                    }
+                    let hash = {};
+                    dataArr = dataArr.reduce((cur,next) => {
+                        hash[next.text] ? '' : hash[next.text] = true && cur.push(next);
+                        return cur;
+                    },[]); //设置cur默认类型为数组，并且初始值为空的数组
+                    $('body').append($(`
+                    <div id="modal">
+                        <div id="modal-bg"></div>
+                        <div id="modal-content" style="overflow: hidden">
+                        </div>
+                    </div>`));
+                    let fill = d3.scale.category10();
+                    let layout = d3.layout.cloud()
+                        .size([800, 800])
+                        .words(dataArr)
+                        .padding(5)
+                        .rotate(function() {
+                            // return ~~(Math.random() * 2) * 90;
+                            return 0;
+                        })
+                        .font("Impact")
+                        .fontSize(function(d) { return d.size; })
+                        .on("end", draw);
+                    layout.start();
+                    function draw(words) {
+                        d3.select("#modal-content").append("svg")
+                            .attr("width", layout.size()[0])
+                            .attr("height", layout.size()[1])
+                            .append("g")
+                            .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function(d) { return d.size + "px"; })
+                            .style("font-family", "Impact")
+                            .style("fill", function(d, i) { return fill(i); })
+                            .attr("text-anchor", "middle")
+                            .attr("transform", function(d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function(d) { return d.text; });
+                    }
+                }
+            });
+        }
     });

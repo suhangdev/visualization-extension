@@ -1,5 +1,5 @@
 var flags = {
-    status: 0
+    status: ''
 }
 
 var tabId = null
@@ -8,6 +8,7 @@ function sendMsg() {
     //     chrome.tabs.sendMessage(tabs[0].id, flags)
     // });
     console.log(tabId)
+    console.log(flags)
     chrome.tabs.sendMessage(tabId, flags)
 }
 function reloadTab() {

@@ -20,7 +20,12 @@
     {
       "matches": ["http://*/*","https://*/*"],
       "css": ["src/css/content.css"],
-      "js": ["src/js/jquery-3.3.1.min.js", "src/js/content.js", "src/js/echarts.min.js"]
+      "js": [
+        "src/js/jquery-3.3.1.min.js",
+        "src/js/content.js",
+        "src/js/echarts.min.js",
+        "src/js/d3.min.js",
+        "src/js/d3.layout.cloud.js"]
     }
   ],
   "permissions": [
