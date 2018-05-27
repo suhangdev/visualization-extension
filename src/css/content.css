@@ -37,3 +37,21 @@
     padding: 10px;
     z-index: 10003;
 }
+#follow {
+    position: fixed;
+    width: 100px;
+    height: 100px;
+    top: 100px;
+    right: 50px;
+    background-color: white;
+    box-shadow: 1px 1px 1px 1px rgba(0,0,0, .3);
+    z-index: 10000;
+}
+#colorpicker {
+    width: 20px;
+    height: 20px;
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}

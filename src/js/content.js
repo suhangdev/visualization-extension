@@ -4,9 +4,9 @@ chrome.runtime.onMessage.addListener(
         body = $('body');
         if(req.status === 'chart') {
             $(window).scroll(function(event){
-                $('a,div,li').removeAttr('href');
+                $('a,span,div,li,td,tr').removeAttr('href');
             });
-            $('a,div,li').removeAttr('href');
+            $('a,span,div,li,td,tr').removeAttr('href');
             let data = [];
             let title = [];
             let table = [];
@@ -14,15 +14,29 @@ chrome.runtime.onMessage.addListener(
             let path = [];
             let index = 0;
             let flag = '';
+            console.log('start');
+            $('body').append($(`
+                    <div id="follow">
+                   
+                    </div>`));
             $(document).click(function (e) {
+                console.log('选择了一个dom节点');
                 data = [];
                 title = [];
-                $('html,body').attr('id', 'ovfHidden');
                 if ($(e.target).attr('id') === 'modal-bg') {
                     $('html,body').attr('id', '');
                     $('#modal').remove();
                 } else if (e.target.tagName === 'CANVAS') {
+                } else if ($(e.target).attr('id') === 'follow' || $(e.target).attr('id') === 'colorpicker') {
                 } else {
+                    $('html,body').attr('id', 'ovfHidden');
+                    $('#follow').append(
+                        $(`
+                        <div>
+                            <input type="color" id="colorpicker" onchange="console.log(this.value)" value="#ff0000">
+                        </div>
+                        `)
+                    );
                     findClass($(e.target)); // get data
                     $('body').append($(`
                     <div id="modal">
