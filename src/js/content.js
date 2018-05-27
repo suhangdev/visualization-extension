@@ -11,14 +11,13 @@ chrome.runtime.onMessage.addListener(
             let title = [];
             let table = [];
             let classArr = [];
+            let path = [];
             let index = 0;
             let flag = '';
             $(document).click(function (e) {
                 data = [];
                 title = [];
-                console.log(data);
-                console.log(title);
-                $('html,body').attr('id', 'ovfHiden');
+                $('html,body').attr('id', 'ovfHidden');
                 if ($(e.target).attr('id') === 'modal-bg') {
                     $('html,body').attr('id', '');
                     $('#modal').remove();
@@ -31,7 +30,7 @@ chrome.runtime.onMessage.addListener(
                         <div id="modal-content">
                         </div>
                     </div>`));
-                    for (let i = 0; i < data.length; i++) {
+                    for (let i = 0; i < data.length; i++) { // 排序
                         for (let j = 0; j < data.length - i; j++) {
                             if (data[j] > data[j + 1]) {
                                 let temp1 = data[j];
@@ -85,24 +84,30 @@ chrome.runtime.onMessage.addListener(
                         }
                     }
                     console.log(classArr[index]); // 找到最小个数的类名
-                    // console.log($(classArr[index]));
-                    if (flag === 'siblings') {
-                        let temp = $(classArr[index]).siblings();
-                        buildDataArr(temp)
-                    } else if (flag === 'parent') {
-                        let temp = $(classArr[index]).children();
+                    if (path.length > 0) {
+                        let temp = $(classArr[index]);
+                        for (let i = 0; i < path.length; i++) {
+                            if (path[i] === 'siblings') {
+                                temp = temp.siblings();
+                            } else if (path[i] === 'parent') {
+                                temp = temp.children();
+                            }
+                        }
                         buildDataArr(temp)
                     } else {
                         let temp = $(classArr[index]);
                         buildDataArr(temp)
                     }
+                    path = [];
                 }
                 else if (node.siblings().attr('class')){
                     flag = 'siblings';
+                    path.push('siblings');
                     findClass(node.siblings());
                 }
                 else {
                     flag = 'parent';
+                    path.push('parent');
                     findClass(node.parent());
                 }
             }
