@@ -14,7 +14,7 @@ chrome.runtime.onMessage.addListener(
             let path = [];
             let index = 0;
             let flag = '';
-            let chartType = ''
+            let chartType = '';
             console.log('start');
             $('body').append($(`
                     <div id="follow">
@@ -22,9 +22,10 @@ chrome.runtime.onMessage.addListener(
                         <div class="follow-btn">堆叠图</div>
                         <div class="follow-btn">饼图</div>
                         <div class="follow-btn">时序图</div>
+                        <div>确定</div>
+                        <div>取消</div>
                     </div>`));
             $(document).click(function (e) {
-                console.log('选择了一个dom节点');
                 data = [];
                 title = [];
                 if ($(e.target).attr('id') === 'modal-bg') {
@@ -36,68 +37,80 @@ chrome.runtime.onMessage.addListener(
                 $(e.target).attr('class') === 'follow-btn' || 
                 $(e.target).attr('class') === 'follow-btn btn-active') {
                     if ($(e.target).attr('class') === 'follow-btn') {
-                        $('.follow-btn').removeClass('btn-active')
-                        $(e.target).addClass('btn-active')
+                        chartType = e.target.innerText;
+                        $('.follow-btn').removeClass('btn-active');
+                        $(e.target).addClass('btn-active');
                     }
                 } else {
                     $('html,body').attr('id', 'ovfHidden');
-                    $('#follow').append(
-                        $(`
-                        <div>
-                            <input type="color" id="colorpicker" onchange="console.log(this.value)" value="#ff0000">
-                        </div>
-                        `)
-                    );
-                    findClass($(e.target)); // get data
-                    $('body').append($(`
+                    if (chartType === '柱状图') {
+                        findClass($(e.target)); // get data
+                        $('body').append($(`
                     <div id="modal">
                         <div id="modal-bg"></div>
                         <div id="modal-content">
                         </div>
                     </div>`));
-                    for (let i = 0; i < data.length; i++) { // 排序
-                        for (let j = 0; j < data.length - i; j++) {
-                            if (data[j] > data[j + 1]) {
-                                let temp1 = data[j];
-                                data[j] = data[j + 1];
-                                data[j + 1] = temp1;
-                                let temp2 = title[j];
-                                title[j] = title[j + 1];
-                                title[j + 1] = temp2;
+                        for (let i = 0; i < data.length; i++) { // 排序
+                            for (let j = 0; j < data.length - i; j++) {
+                                if (data[j] > data[j + 1]) {
+                                    let temp1 = data[j];
+                                    data[j] = data[j + 1];
+                                    data[j + 1] = temp1;
+                                    let temp2 = title[j];
+                                    title[j] = title[j + 1];
+                                    title[j + 1] = temp2;
+                                }
                             }
                         }
+                        let chart = echarts.init(document.getElementById('modal-content'));
+                        option = {
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: {
+                                    type: 'shadow'
+                                }
+                            },
+                            xAxis: {
+                                type: 'value',
+                                boundaryGap: [0, 0.01],
+                                axisLabel : {//坐标轴刻度标签的相关设置。
+                                    interval:0,
+                                    rotate:"45"
+                                }
+                            },
+                            yAxis: {
+                                type: 'category',
+                                data: title
+                            },
+                            grid: {
+                                containLabel: true
+                            },
+                            series: [
+                                {
+                                    type: 'bar',
+                                    data: data
+                                }
+                            ]
+                        };
+                        chart.setOption(option);
                     }
-                    let chart = echarts.init(document.getElementById('modal-content'));
-                    option = {
-                        tooltip: {
-                            trigger: 'axis',
-                            axisPointer: {
-                                type: 'shadow'
-                            }
-                        },
-                        xAxis: {
-                            type: 'value',
-                            boundaryGap: [0, 0.01],
-                            axisLabel : {//坐标轴刻度标签的相关设置。
-                                interval:0,
-                                rotate:"45"
-                            }
-                        },
-                        yAxis: {
-                            type: 'category',
-                            data: title
-                        },
-                        grid: {
-                            containLabel: true
-                        },
-                        series: [
-                            {
-                                type: 'bar',
-                                data: data
-                            }
-                        ]
-                    };
-                    chart.setOption(option);
+                    else if (chartType === '堆叠图') {
+                        $('#follow').append(
+                            $(`
+                            <div>
+                                <span>${e.target.innerText}</span>
+                                <input type="color" id="colorpicker" onchange="console.log(this.value)" value="${getColor()}">
+                            </div>
+                            `)
+                        );
+                    }
+                    else if (chartType === '饼图') {
+                        // TODO
+                    }
+                    else if (chartType === '时序图') {
+                        // TODO
+                    }
                 }
             });
             function findClass(node) {
@@ -156,6 +169,15 @@ chrome.runtime.onMessage.addListener(
                 } else {
                     buildTitleArr(jqObj.parent())
                 }
+            }
+            function getColor(){
+                let colorValue = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f";
+                let colorArray = colorValue.split(",");
+                let color = "#";
+                for(let i = 0; i < 6; i++){
+                    color += colorArray[Math.floor(Math.random() * 16)];
+                }
+                return color;
             }
         }
         if(req.status === 'cloud') {
