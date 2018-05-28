@@ -14,10 +14,14 @@ chrome.runtime.onMessage.addListener(
             let path = [];
             let index = 0;
             let flag = '';
+            let chartType = ''
             console.log('start');
             $('body').append($(`
                     <div id="follow">
-                   
+                        <div class="follow-btn">柱状图</div>
+                        <div class="follow-btn">堆叠图</div>
+                        <div class="follow-btn">饼图</div>
+                        <div class="follow-btn">时序图</div>
                     </div>`));
             $(document).click(function (e) {
                 console.log('选择了一个dom节点');
@@ -27,7 +31,14 @@ chrome.runtime.onMessage.addListener(
                     $('html,body').attr('id', '');
                     $('#modal').remove();
                 } else if (e.target.tagName === 'CANVAS') {
-                } else if ($(e.target).attr('id') === 'follow' || $(e.target).attr('id') === 'colorpicker') {
+                } else if ($(e.target).attr('id') === 'follow' || 
+                $(e.target).attr('id') === 'colorpicker' || 
+                $(e.target).attr('class') === 'follow-btn' || 
+                $(e.target).attr('class') === 'follow-btn btn-active') {
+                    if ($(e.target).attr('class') === 'follow-btn') {
+                        $('.follow-btn').removeClass('btn-active')
+                        $(e.target).addClass('btn-active')
+                    }
                 } else {
                     $('html,body').attr('id', 'ovfHidden');
                     $('#follow').append(

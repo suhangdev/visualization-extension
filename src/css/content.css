@@ -39,13 +39,27 @@
 }
 #follow {
     position: fixed;
-    width: 100px;
-    height: 100px;
-    top: 100px;
+    width: 269px;
+    top: 50px;
     right: 50px;
+    padding: 15px;
     background-color: white;
     box-shadow: 1px 1px 1px 1px rgba(0,0,0, .3);
     z-index: 10000;
+}
+.follow-btn{
+    display: inline-block;
+    line-height: 24px;
+    padding: 2px 5px;
+    width: 42px;
+    margin: 5px 5px;
+    border: 1px solid #409EFF;
+    background-color: #409EFF;
+    color: #fff;
+    border-radius: 4px;
+    height: 24px;
+    text-align: center;
+    cursor: pointer;
 }
 #colorpicker {
     width: 20px;
@@ -54,4 +68,8 @@
     padding: 0;
     background: transparent;
     cursor: pointer;
+}
+.btn-active{
+    border: 1px solid #fa5050;
+    background-color: #fa5050;
 }
