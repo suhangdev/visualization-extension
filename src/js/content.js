@@ -18,12 +18,10 @@ chrome.runtime.onMessage.addListener(
             console.log('start');
             $('body').append($(`
                     <div id="follow">
-                        <div class="follow-btn">柱状图</div>
-                        <div class="follow-btn">堆叠图</div>
-                        <div class="follow-btn">饼图</div>
-                        <div class="follow-btn">时序图</div>
-                        <div>确定</div>
-                        <div>取消</div>
+                        <div class="extension follow-btn">柱状图</div>
+                        <div class="extension follow-btn">堆叠图</div>
+                        <div class="extension follow-btn">饼图</div>
+                        <div class="extension follow-btn">时序图</div>
                     </div>`));
             $(document).click(function (e) {
                 data = [];
@@ -33,74 +31,104 @@ chrome.runtime.onMessage.addListener(
                     $('#modal').remove();
                 } else if (e.target.tagName === 'CANVAS') {
                 } else if ($(e.target).attr('id') === 'follow' || 
-                $(e.target).attr('id') === 'colorpicker' || 
-                $(e.target).attr('class') === 'follow-btn' || 
-                $(e.target).attr('class') === 'follow-btn btn-active') {
-                    if ($(e.target).attr('class') === 'follow-btn') {
-                        chartType = e.target.innerText;
-                        $('.follow-btn').removeClass('btn-active');
-                        $(e.target).addClass('btn-active');
-                    }
-                } else {
-                    $('html,body').attr('id', 'ovfHidden');
-                    if (chartType === '柱状图') {
-                        findClass($(e.target)); // get data
-                        $('body').append($(`
-                    <div id="modal">
-                        <div id="modal-bg"></div>
-                        <div id="modal-content">
-                        </div>
-                    </div>`));
-                        for (let i = 0; i < data.length; i++) { // 排序
-                            for (let j = 0; j < data.length - i; j++) {
-                                if (data[j] > data[j + 1]) {
-                                    let temp1 = data[j];
-                                    data[j] = data[j + 1];
-                                    data[j + 1] = temp1;
-                                    let temp2 = title[j];
-                                    title[j] = title[j + 1];
-                                    title[j + 1] = temp2;
+                $(e.target).attr('id') === 'colorpicker' || $(e.target).attr('class') ? 
+                $(e.target).attr('class').split(' ')[0] === 'extension' : 
+                false) {
+                    if ($(e.target).attr('class')) {
+                        if ($(e.target).attr('class').split(' ')[1] === 'follow-btn') {
+                            if (chartType === e.target.innerText) {
+                                $(e.target).removeClass('btn-active');
+                                if (chartType === '柱状图') {
+                                    $('html,body').attr('id', 'ovfHidden');
+                                    debugger
+                                    findClass($(sessionStorage.getItem('Data1'))); // get data
+                                    $('body').append($(`
+                                        <div id="modal">
+                                            <div id="modal-bg"></div>
+                                            <div id="modal-content">
+                                            </div>
+                                        </div>`));
+                                    for (let i = 0; i < data.length; i++) { // 排序
+                                        for (let j = 0; j < data.length - i; j++) {
+                                            if (data[j] > data[j + 1]) {
+                                                let temp1 = data[j];
+                                                data[j] = data[j + 1];
+                                                data[j + 1] = temp1;
+                                                let temp2 = title[j];
+                                                title[j] = title[j + 1];
+                                                title[j + 1] = temp2;
+                                            }
+                                        }
+                                    }
+                                    let chart = echarts.init(document.getElementById('modal-content'));
+                                    option = {
+                                        tooltip: {
+                                            trigger: 'axis',
+                                            axisPointer: {
+                                                type: 'shadow'
+                                            }
+                                        },
+                                        xAxis: {
+                                            type: 'value',
+                                            boundaryGap: [0, 0.01],
+                                            axisLabel : {//坐标轴刻度标签的相关设置。
+                                                interval:0,
+                                                rotate:"45"
+                                            }
+                                        },
+                                        yAxis: {
+                                            type: 'category',
+                                            data: title
+                                        },
+                                        grid: {
+                                            containLabel: true
+                                        },
+                                        series: [
+                                            {
+                                                type: 'bar',
+                                                data: data
+                                            }
+                                        ]
+                                    };
+                                    chart.setOption(option);
                                 }
+                                else if (chartType === '堆叠图') {
+                                    // TODO
+                                }
+                                else if (chartType === '饼图') {
+                                    // TODO
+                                }
+                                else if (chartType === '时序图') {
+                                    // TODO
+                                }
+                                chartType = '';
+                            } else {
+                                chartType = e.target.innerText;
+                                $('.follow-btn').removeClass('btn-active');
+                                $(e.target).addClass('btn-active');
+                                $('.follow-box').remove()
                             }
                         }
-                        let chart = echarts.init(document.getElementById('modal-content'));
-                        option = {
-                            tooltip: {
-                                trigger: 'axis',
-                                axisPointer: {
-                                    type: 'shadow'
-                                }
-                            },
-                            xAxis: {
-                                type: 'value',
-                                boundaryGap: [0, 0.01],
-                                axisLabel : {//坐标轴刻度标签的相关设置。
-                                    interval:0,
-                                    rotate:"45"
-                                }
-                            },
-                            yAxis: {
-                                type: 'category',
-                                data: title
-                            },
-                            grid: {
-                                containLabel: true
-                            },
-                            series: [
-                                {
-                                    type: 'bar',
-                                    data: data
-                                }
-                            ]
-                        };
-                        chart.setOption(option);
+                    }
+                } else {
+                    if (chartType === '柱状图') {
+                        $('.follow-box').remove()
+                        $('#follow').append(
+                            $(`
+                            <div class="extension follow-box">
+                                <div class="extension follow-text">${$(e.target).parent().eq($(e.target).parent().index($(e.target))).html()}</div>
+                                <input class="extension" type="color" id="colorpicker" style="display: inline-block; vertical-align: middle;" value="${getColor()}">
+                            </div>
+                            `)
+                        );
+                        sessionStorage.setItem('Data1', $(e.target).parent().eq($(e.target).parent().index($(e.target))).html())
                     }
                     else if (chartType === '堆叠图') {
                         $('#follow').append(
                             $(`
-                            <div>
-                                <span>${e.target.innerText}</span>
-                                <input type="color" id="colorpicker" onchange="console.log(this.value)" value="${getColor()}">
+                            <div class="extension follow-box">
+                                <div class="extension follow-text">${e.target.innerText}</div>
+                                <input class="extension" type="color" id="colorpicker" style="display: inline-block; vertical-align: middle;" value="${getColor()}">
                             </div>
                             `)
                         );

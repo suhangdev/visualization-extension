@@ -39,7 +39,7 @@
 }
 #follow {
     position: fixed;
-    width: 269px;
+    width: 275px;
     top: 50px;
     right: 50px;
     padding: 15px;
@@ -49,6 +49,7 @@
 }
 .follow-btn{
     display: inline-block;
+    vertical-align: top;
     line-height: 24px;
     padding: 2px 5px;
     width: 42px;
@@ -60,6 +61,14 @@
     height: 24px;
     text-align: center;
     cursor: pointer;
+}
+.follow-text{
+    display: inline-block;
+    vertical-align: middle;
+    padding: 7px;
+    width: 150px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 #colorpicker {
     width: 20px;
