@@ -8,6 +8,7 @@ chrome.runtime.onMessage.addListener(
             });
             $('a,span,div,li,td,tr').removeAttr('href');
             let data = [];
+            let datas = [];
             let title = [];
             let table = [];
             let classArr = [];
@@ -15,6 +16,9 @@ chrome.runtime.onMessage.addListener(
             let index = 0;
             let flag = '';
             let chartType = '';
+            let chooseNode = [];
+            let curColor = [];
+            let count = 0;
             console.log('start');
             $('body').append($(`
                     <div id="follow">
@@ -28,25 +32,22 @@ chrome.runtime.onMessage.addListener(
                     $('html,body').attr('id', '');
                     $('#modal').remove();
                 } else if (e.target.tagName === 'CANVAS') {
-                } else if ($(e.target).attr('id') === 'follow' || 
-                $(e.target).attr('id') === 'colorpicker' || $(e.target).attr('class') ? 
+                } else if ($(e.target).attr('id') === 'follow' || $(e.target).attr('class') ?
                 $(e.target).attr('class').split(' ')[0] === 'extension' : 
                 false) {
                     if ($(e.target).attr('class')) {
                         if ($(e.target).attr('class').split(' ')[1] === 'follow-btn') {
                             if (chartType === e.target.innerText) {
                                 $(e.target).removeClass('btn-active');
+                                $('html,body').attr('id', 'ovfHidden');
                                 if (chartType === '柱状图') {
-                                    $('html,body').attr('id', 'ovfHidden');
                                     data = [];
                                     title = [];
-                                    console.log($(sessionStorage.getItem('Data1')))
-                                    findClass($(sessionStorage.getItem('Data1'))); // get data
+                                    findClass(chooseNode[0]); // get data
                                     $('body').append($(`
                                         <div id="modal">
                                             <div id="modal-bg"></div>
-                                            <div id="modal-content">
-                                            </div>
+                                            <div id="modal-content"></div>
                                         </div>`));
                                     for (let i = 0; i < data.length; i++) { // 排序
                                         for (let j = 0; j < data.length - i; j++) {
@@ -86,14 +87,93 @@ chrome.runtime.onMessage.addListener(
                                         series: [
                                             {
                                                 type: 'bar',
-                                                data: data
+                                                data: data,
+                                                label: {
+                                                    normal: {
+                                                        show: true,
+                                                        position: 'insideRight'
+                                                    }
+                                                },
+                                                itemStyle:{
+                                                    normal:{
+                                                        color: curColor[0]
+                                                    }
+                                                }
                                             }
                                         ]
                                     };
                                     chart.setOption(option);
                                 }
                                 else if (chartType === '堆叠图') {
-                                    // TODO
+                                    datas = [];
+                                    title = [];
+                                    for (let i = 0; i < chooseNode.length; i++) {
+                                        count = i;
+                                        findClass(chooseNode[i]);
+                                    }
+                                    count = 0;
+                                    console.log(datas);
+                                    let legend = [];
+                                    let series = [];
+                                    console.log(curColor);
+                                    let nodes = $('.colorpicker');
+                                    console.log(nodes[1]);
+                                    for (let i = 0; i < nodes.length; i++) {
+                                        curColor.push($(nodes[i]).css('background-color'))
+                                    }
+                                    for (let i = 0; i < datas.length; i++) {
+                                        legend.push(`data${i + 1}`);
+                                        series.push(
+                                            {
+                                                name: `data${i + 1}`,
+                                                type: 'bar',
+                                                stack: '总量',
+                                                itemStyle:{
+                                                    normal:{
+                                                        color: curColor[i]
+                                                    }
+                                                },
+                                                data: datas[i].reverse()
+                                            }
+                                        )
+                                    }
+                                    console.log(title);
+                                    $('body').append($(`
+                                        <div id="modal">
+                                            <div id="modal-bg"></div>
+                                            <div id="modal-content"></div>
+                                        </div>`));
+                                    let chart = echarts.init(document.getElementById('modal-content'));
+                                    option = {
+                                        tooltip : {
+                                            trigger: 'axis',
+                                            axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                                                type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                                            }
+                                        },
+                                        legend: {
+                                            data: legend
+                                        },
+                                        grid: {
+                                            left: '3%',
+                                            right: '4%',
+                                            bottom: '3%',
+                                            containLabel: true
+                                        },
+                                        xAxis:  {
+                                            type: 'value',
+                                            axisLabel : {//坐标轴刻度标签的相关设置。
+                                                interval:0,
+                                                rotate:"45"
+                                            }
+                                        },
+                                        yAxis: {
+                                            type: 'category',
+                                            data: title.reverse()
+                                        },
+                                        series: series
+                                    };
+                                    chart.setOption(option);
                                 }
                                 else if (chartType === '饼图') {
                                     // TODO
@@ -102,6 +182,9 @@ chrome.runtime.onMessage.addListener(
                                     // TODO
                                 }
                                 chartType = '';
+                                chooseNode = [];
+                                curColor = [];
+                                $('.follow-box').remove();
                             } else {
                                 chartType = e.target.innerText;
                                 $('.follow-btn').removeClass('btn-active');
@@ -112,26 +195,30 @@ chrome.runtime.onMessage.addListener(
                     }
                 } else {
                     if (chartType === '柱状图') {
-                        $('.follow-box').remove()
+                        chooseNode = [];
+                        $('.follow-box').remove();
                         $('#follow').append(
                             $(`
                             <div class="extension follow-box">
-                                <div class="extension follow-text">${$(e.target).parent().eq($(e.target).parent().index($(e.target))).html()}</div>
-                                <input class="extension" type="color" id="colorpicker" style="display: inline-block; vertical-align: middle;" value="${getColor()}">
+                                <div class="extension follow-text">${$(e.target).html()}</div>
+                                <span class="extension colorpicker" style="display: inline-block; background-color: ${getColor()}; vertical-align: middle;"></span>
                             </div>
                             `)
                         );
-                        sessionStorage.setItem('Data1', e.target.outerHTML)
+                        curColor.push($('.colorpicker').css('background-color'));
+                        chooseNode.push($(e.target));
                     }
                     else if (chartType === '堆叠图') {
                         $('#follow').append(
                             $(`
                             <div class="extension follow-box">
-                                <div class="extension follow-text">${e.target.innerText}</div>
-                                <input class="extension" type="color" id="colorpicker" style="display: inline-block; vertical-align: middle;" value="${getColor()}">
+                                <div class="extension follow-text">${$(e.target).html()}</div>
+                                <span class="extension colorpicker" style="display: inline-block; background-color: ${getColor()}; vertical-align: middle;"></span>
                             </div>
                             `)
                         );
+                        // curColor.push($('.colorpicker').css('background-color'));
+                        chooseNode.push($(e.target));
                     }
                     else if (chartType === '饼图') {
                         // TODO
@@ -184,10 +271,20 @@ chrome.runtime.onMessage.addListener(
                 return arr
             }
             function buildDataArr(jqObj) {
-                debugger
-                for (let i = 0; i < jqObj.length; i++) {
-                    data.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g,'')));
-                    buildTitleArr($(jqObj[i]));
+                if (chartType === '堆叠图') {
+                    let arr = [];
+                    for (let i = 0; i < jqObj.length; i++) {
+                        arr.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g, '')));
+                        if (count === 0) {
+                            buildTitleArr($(jqObj[i]));
+                        }
+                    }
+                    datas.push(arr);
+                } else {
+                    for (let i = 0; i < jqObj.length; i++) {
+                        data.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g,'')));
+                        buildTitleArr($(jqObj[i]));
+                    }
                 }
             }
             function buildTitleArr(jqObj) {
@@ -200,11 +297,12 @@ chrome.runtime.onMessage.addListener(
                 }
             }
             function getColor(){
-                let colorValue = "0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f";
+                let colorValue = "6,7,8,9,a,b,c,d,e,f";
                 let colorArray = colorValue.split(",");
                 let color = "#";
                 for(let i = 0; i < 6; i++){
-                    color += colorArray[Math.floor(Math.random() * 16)];
+                    color += colorArray[Math.floor(Math.random() * 10)];
+                    console.log(colorArray[Math.floor(Math.random() * 10)])
                 }
                 return color;
             }
