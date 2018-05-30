@@ -24,8 +24,6 @@ chrome.runtime.onMessage.addListener(
                         <div class="extension follow-btn">时序图</div>
                     </div>`));
             $(document).click(function (e) {
-                data = [];
-                title = [];
                 if ($(e.target).attr('id') === 'modal-bg') {
                     $('html,body').attr('id', '');
                     $('#modal').remove();
@@ -40,7 +38,9 @@ chrome.runtime.onMessage.addListener(
                                 $(e.target).removeClass('btn-active');
                                 if (chartType === '柱状图') {
                                     $('html,body').attr('id', 'ovfHidden');
-                                    debugger
+                                    data = [];
+                                    title = [];
+                                    console.log($(sessionStorage.getItem('Data1')))
                                     findClass($(sessionStorage.getItem('Data1'))); // get data
                                     $('body').append($(`
                                         <div id="modal">
@@ -121,7 +121,7 @@ chrome.runtime.onMessage.addListener(
                             </div>
                             `)
                         );
-                        sessionStorage.setItem('Data1', $(e.target).parent().eq($(e.target).parent().index($(e.target))).html())
+                        sessionStorage.setItem('Data1', e.target.outerHTML)
                     }
                     else if (chartType === '堆叠图') {
                         $('#follow').append(
@@ -184,6 +184,7 @@ chrome.runtime.onMessage.addListener(
                 return arr
             }
             function buildDataArr(jqObj) {
+                debugger
                 for (let i = 0; i < jqObj.length; i++) {
                     data.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g,'')));
                     buildTitleArr($(jqObj[i]));
