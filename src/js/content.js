@@ -229,6 +229,40 @@ chrome.runtime.onMessage.addListener(
                 }
             });
             function findClass(node) {
+                let tableOfParent = false
+                for (let i = 0; i < node.parents().length; i++) {
+                    if (node.parents()[i].nodeName === 'TABLE') {
+                        tableOfParent = true
+                    }
+                }
+                if (tableOfParent) {
+                    if (node.parents('tbody').parent().find('thead').length === 0) {
+                        findThead(node, node.parents('td').index())
+                        node.parents('tbody').find('tr').each(function (item) {
+                            console.log($(this).children().eq(node.parents('td').index()).text())
+                        })
+                    } else {
+                        if (node.parents('table').hasClass('opr-toplist-table')) { // 黑名单
+                            findNodeByClass(node)
+                        } else {
+                            console.log(node.parents('tbody').parent().find('thead').find('th').eq(node.parents('td').index()).text())
+                            node.parents('tbody').find('tr').each(function (item) {
+                                console.log($(this).children().eq(node.parents('td').index()).text())
+                            })
+                        }
+                    }
+                } else {
+                    findNodeByClass(node)
+                }
+            }
+            function findThead(node, length) {
+                if (node.find('thead').length > 0) {
+                    console.log(node.find('thead').find('th').eq(length).text())
+                } else {
+                    findThead(node.parent(), length)
+                }
+            }
+            function findNodeByClass(node) {
                 if (node.attr('class')) {
                     classArr = getStandardClass(node.attr('class').split(' '));
                     for (let i = 0; i < classArr.length; i++) {
@@ -302,7 +336,6 @@ chrome.runtime.onMessage.addListener(
                 let color = "#";
                 for(let i = 0; i < 6; i++){
                     color += colorArray[Math.floor(Math.random() * 10)];
-                    console.log(colorArray[Math.floor(Math.random() * 10)])
                 }
                 return color;
             }
@@ -318,7 +351,7 @@ chrome.runtime.onMessage.addListener(
             $(document).click(function (e) {
                 strArr = [];
                 dataArr = [];
-                $('html,body').attr('id', 'ovfHiden');
+                $('html,body').attr('id', 'ovfHidden');
                 if ($(e.target).attr('id') === 'modal-bg') {
                     $('html,body').attr('id', '');
                     $('#modal').remove();
