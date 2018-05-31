@@ -217,7 +217,7 @@ chrome.runtime.onMessage.addListener(
                             </div>
                             `)
                         );
-                        // curColor.push($('.colorpicker').css('background-color'));
+                        curColor.push($('.colorpicker').css('background-color'));
                         chooseNode.push($(e.target));
                     }
                     else if (chartType === '饼图') {
@@ -237,17 +237,17 @@ chrome.runtime.onMessage.addListener(
                 }
                 if (tableOfParent) {
                     if (node.parents('tbody').parent().find('thead').length === 0) {
-                        findThead(node, node.parents('td').index())
+                        findThead(node, node.parents('td').index()); // title
                         node.parents('tbody').find('tr').each(function (item) {
-                            console.log($(this).children().eq(node.parents('td').index()).text())
+                            console.log($(this).children().eq(node.parents('td').index()).text()) // data
                         })
                     } else {
                         if (node.parents('table').hasClass('opr-toplist-table')) { // 黑名单
                             findNodeByClass(node)
                         } else {
-                            console.log(node.parents('tbody').parent().find('thead').find('th').eq(node.parents('td').index()).text())
+                            console.log(node.parents('tbody').parent().find('thead').find('th').eq(node.parents('td').index()).text()) // title
                             node.parents('tbody').find('tr').each(function (item) {
-                                console.log($(this).children().eq(node.parents('td').index()).text())
+                                console.log($(this).children().eq(node.parents('td').index()).text()) // data
                             })
                         }
                     }
