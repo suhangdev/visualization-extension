@@ -38,8 +38,10 @@
     z-index: 10003;
 }
 #follow {
+    font-size: 14px;
     position: fixed;
-    width: 275px;
+    text-align: center;
+    width: 100px;
     top: 50px;
     right: 50px;
     padding: 15px;
@@ -52,7 +54,6 @@
     vertical-align: top;
     line-height: 24px;
     padding: 2px 5px;
-    width: 42px;
     margin: 5px 5px;
     border: 1px solid #409EFF;
     background-color: #409EFF;
@@ -66,7 +67,6 @@
     display: inline-block;
     vertical-align: middle;
     padding: 7px;
-    width: 150px;
     text-overflow: ellipsis;
     overflow: hidden;
 }

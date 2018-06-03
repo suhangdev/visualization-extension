@@ -19,13 +19,11 @@ chrome.runtime.onMessage.addListener(
             let chooseNode = [];
             let curColor = [];
             let count = 0;
+            let label = [];
             console.log('start');
             $('body').append($(`
                     <div id="follow">
-                        <div class="extension follow-btn">柱状图</div>
-                        <div class="extension follow-btn">堆叠图</div>
-                        <div class="extension follow-btn">饼图</div>
-                        <div class="extension follow-btn">时序图</div>
+                        <div class="extension follow-btn">开始选择</div>
                     </div>`));
             $(document).click(function (e) {
                 if ($(e.target).attr('id') === 'modal-bg') {
@@ -33,94 +31,160 @@ chrome.runtime.onMessage.addListener(
                     $('#modal').remove();
                 } else if (e.target.tagName === 'CANVAS') {
                 } else if ($(e.target).attr('id') === 'follow' || $(e.target).attr('class') ?
-                $(e.target).attr('class').split(' ')[0] === 'extension' : 
-                false) {
+                $(e.target).attr('class').split(' ')[0] === 'extension' : false) {
                     if ($(e.target).attr('class')) {
                         if ($(e.target).attr('class').split(' ')[1] === 'follow-btn') {
-                            if (chartType === e.target.innerText) {
-                                $(e.target).removeClass('btn-active');
+                            if (chartType === '生成图表') {
+                                $(e.target).removeClass('btn-active').text('开始选择');
                                 $('html,body').attr('id', 'ovfHidden');
-                                if (chartType === '柱状图') {
-                                    data = [];
-                                    title = [];
-                                    findClass(chooseNode[0]); // get data
+                                datas = [];
+                                title = [];
+                                let legend = [];
+                                let series = [];
+                                let nodes = $('.colorpicker');
+                                let tableOfParent = false;
+                                for (let i = 0; i < chooseNode.length; i++) {
+                                    count = i;
+                                    curColor.push(getColor());
+                                    findClass(chooseNode[i]);
+                                }
+                                count = 0;
+                                for (let i = 0; i < chooseNode[0].parents().length; i++) {
+                                    if (chooseNode[0].parents()[i].nodeName === 'TABLE' && window.location.host !== 'www.baidu.com') {
+                                        tableOfParent = true
+                                    }
+                                }
+                                for (let i = 0; i < nodes.length; i++) {
+                                    curColor.push($(nodes[i]).css('background-color'))
+                                }
+                                if (tableOfParent) {
+                                    legend = label;
+                                    title = datas[0];
+                                    let isNotDate = true;
+                                    for (let i = 0; i < title.length; i++) {
+                                        if (new Date(title[i]).getTime() > 999999999999) {
+                                            isNotDate = false;
+                                        }
+                                    }
+                                    if (isNotDate) {
+                                        for (let i = 1; i < datas.length; i++) {
+                                            series.push(
+                                                {
+                                                    name: `${label[i]}`,
+                                                    type: 'bar',
+                                                    stack: '总量',
+                                                    itemStyle:{
+                                                        normal:{
+                                                            color: curColor[i]
+                                                        }
+                                                    },
+                                                    data: datas[i]
+                                                }
+                                            )
+                                        }
+                                        option = {
+                                            tooltip : {
+                                                trigger: 'axis',
+                                                axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                                                    type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                                                }
+                                            },
+                                            toolbox: {
+                                                feature: {
+                                                    saveAsImage: {}
+                                                }
+                                            },
+                                            legend: {
+                                                data: legend
+                                            },
+                                            grid: {
+                                                left: '3%',
+                                                right: '4%',
+                                                bottom: '3%',
+                                                containLabel: true
+                                            },
+                                            xAxis:  {
+                                                type: 'value',
+                                                axisLabel : {//坐标轴刻度标签的相关设置。
+                                                    interval:0,
+                                                    rotate:"45"
+                                                }
+                                            },
+                                            yAxis: {
+                                                type: 'category',
+                                                data: title
+                                            },
+                                            series: series
+                                        };
+                                    } else {
+                                        for (let i = 1; i < datas.length; i++) {
+                                            series.push(
+                                                {
+                                                    name:`${label[i]}`,
+                                                    type:'line',
+                                                    stack: '总量',
+                                                    areaStyle: {normal: {}},
+                                                    itemStyle:{
+                                                        normal:{
+                                                            color: curColor[i]
+                                                        }
+                                                    },
+                                                    data: datas[i]
+                                                }
+                                            )
+                                        }
+                                        option = {
+                                            tooltip : {
+                                                trigger: 'axis',
+                                                axisPointer: {
+                                                    type: 'cross',
+                                                    label: {
+                                                        backgroundColor: '#6a7985'
+                                                    }
+                                                }
+                                            },
+                                            legend: {
+                                                data: legend
+                                            },
+                                            toolbox: {
+                                                feature: {
+                                                    saveAsImage: {}
+                                                }
+                                            },
+                                            grid: {
+                                                left: '3%',
+                                                right: '4%',
+                                                bottom: '3%',
+                                                containLabel: true
+                                            },
+                                            xAxis : [
+                                                {
+                                                    type : 'category',
+                                                    boundaryGap : false,
+                                                    data : title
+                                                }
+                                            ],
+                                            yAxis : [
+                                                {
+                                                    type : 'value'
+                                                }
+                                            ],
+                                            series : series
+                                        };
+                                    }
                                     $('body').append($(`
                                         <div id="modal">
                                             <div id="modal-bg"></div>
                                             <div id="modal-content"></div>
                                         </div>`));
-                                    for (let i = 0; i < data.length; i++) { // 排序
-                                        for (let j = 0; j < data.length - i; j++) {
-                                            if (data[j] > data[j + 1]) {
-                                                let temp1 = data[j];
-                                                data[j] = data[j + 1];
-                                                data[j + 1] = temp1;
-                                                let temp2 = title[j];
-                                                title[j] = title[j + 1];
-                                                title[j + 1] = temp2;
-                                            }
-                                        }
-                                    }
                                     let chart = echarts.init(document.getElementById('modal-content'));
-                                    option = {
-                                        tooltip: {
-                                            trigger: 'axis',
-                                            axisPointer: {
-                                                type: 'shadow'
-                                            }
-                                        },
-                                        xAxis: {
-                                            type: 'value',
-                                            boundaryGap: [0, 0.01],
-                                            axisLabel : {//坐标轴刻度标签的相关设置。
-                                                interval:0,
-                                                rotate:"45"
-                                            }
-                                        },
-                                        yAxis: {
-                                            type: 'category',
-                                            data: title
-                                        },
-                                        grid: {
-                                            containLabel: true
-                                        },
-                                        series: [
-                                            {
-                                                type: 'bar',
-                                                data: data,
-                                                label: {
-                                                    normal: {
-                                                        show: true,
-                                                        position: 'insideRight'
-                                                    }
-                                                },
-                                                itemStyle:{
-                                                    normal:{
-                                                        color: curColor[0]
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    };
                                     chart.setOption(option);
-                                }
-                                else if (chartType === '堆叠图') {
-                                    datas = [];
-                                    title = [];
-                                    for (let i = 0; i < chooseNode.length; i++) {
-                                        count = i;
-                                        findClass(chooseNode[i]);
-                                    }
-                                    count = 0;
-                                    console.log(datas);
-                                    let legend = [];
-                                    let series = [];
-                                    console.log(curColor);
-                                    let nodes = $('.colorpicker');
-                                    console.log(nodes[1]);
-                                    for (let i = 0; i < nodes.length; i++) {
-                                        curColor.push($(nodes[i]).css('background-color'))
-                                    }
+                                    chartType = '开始选择';
+                                    chooseNode = [];
+                                    curColor = [];
+                                    label = [];
+                                    $('.follow-box').remove();
+                                } else {
                                     for (let i = 0; i < datas.length; i++) {
                                         legend.push(`data${i + 1}`);
                                         series.push(
@@ -137,7 +201,7 @@ chrome.runtime.onMessage.addListener(
                                             }
                                         )
                                     }
-                                    console.log(title);
+                                    console.log(label);
                                     $('body').append($(`
                                         <div id="modal">
                                             <div id="modal-bg"></div>
@@ -174,81 +238,59 @@ chrome.runtime.onMessage.addListener(
                                         series: series
                                     };
                                     chart.setOption(option);
+                                    chartType = '开始选择';
+                                    chooseNode = [];
+                                    curColor = [];
+                                    $('.follow-box').remove();
                                 }
-                                else if (chartType === '饼图') {
-                                    // TODO
-                                }
-                                else if (chartType === '时序图') {
-                                    // TODO
-                                }
-                                chartType = '';
-                                chooseNode = [];
-                                curColor = [];
-                                $('.follow-box').remove();
                             } else {
+                                $('.follow-btn').removeClass('btn-active').text('生成图表');
                                 chartType = e.target.innerText;
-                                $('.follow-btn').removeClass('btn-active');
                                 $(e.target).addClass('btn-active');
                                 $('.follow-box').remove()
                             }
                         }
                     }
                 } else {
-                    if (chartType === '柱状图') {
-                        chooseNode = [];
-                        $('.follow-box').remove();
+                    if (chartType === '生成图表') {
                         $('#follow').append(
                             $(`
                             <div class="extension follow-box">
                                 <div class="extension follow-text">${$(e.target).html()}</div>
-                                <span class="extension colorpicker" style="display: inline-block; background-color: ${getColor()}; vertical-align: middle;"></span>
                             </div>
                             `)
                         );
-                        curColor.push($('.colorpicker').css('background-color'));
                         chooseNode.push($(e.target));
-                    }
-                    else if (chartType === '堆叠图') {
-                        $('#follow').append(
-                            $(`
-                            <div class="extension follow-box">
-                                <div class="extension follow-text">${$(e.target).html()}</div>
-                                <span class="extension colorpicker" style="display: inline-block; background-color: ${getColor()}; vertical-align: middle;"></span>
-                            </div>
-                            `)
-                        );
-                        curColor.push($('.colorpicker').css('background-color'));
-                        chooseNode.push($(e.target));
-                    }
-                    else if (chartType === '饼图') {
-                        // TODO
-                    }
-                    else if (chartType === '时序图') {
-                        // TODO
                     }
                 }
             });
             function findClass(node) {
-                let tableOfParent = false
+                let tableOfParent = false;
                 for (let i = 0; i < node.parents().length; i++) {
                     if (node.parents()[i].nodeName === 'TABLE') {
                         tableOfParent = true
                     }
                 }
                 if (tableOfParent) {
+                    let temp = [];
                     if (node.parents('tbody').parent().find('thead').length === 0) {
                         findThead(node, node.parents('td').index()); // title
                         node.parents('tbody').find('tr').each(function (item) {
-                            console.log($(this).children().eq(node.parents('td').index()).text()) // data
-                        })
+                            // data
+                            temp.push($(this).children().eq(node.parents('td').index()).text())
+                        });
+                        datas.push(temp);
                     } else {
-                        if (node.parents('table').hasClass('opr-toplist-table')) { // 黑名单
+                        if (window.location.host === 'www.baidu.com') { // 黑名单
                             findNodeByClass(node)
                         } else {
-                            console.log(node.parents('tbody').parent().find('thead').find('th').eq(node.parents('td').index()).text()) // title
+                            // title
+                            label.push(node.parents('tbody').parent().find('thead').find('th').eq(node.parents('td').index()).text());
                             node.parents('tbody').find('tr').each(function (item) {
-                                console.log($(this).children().eq(node.parents('td').index()).text()) // data
-                            })
+                                // data
+                                temp.push($(this).children().eq(node.parents('td').index()).text())
+                            });
+                            datas.push(temp)
                         }
                     }
                 } else {
@@ -257,7 +299,7 @@ chrome.runtime.onMessage.addListener(
             }
             function findThead(node, length) {
                 if (node.find('thead').length > 0) {
-                    console.log(node.find('thead').find('th').eq(length).text())
+                    label.push(node.find('thead').find('th').eq(length).text())
                 } else {
                     findThead(node.parent(), length)
                 }
@@ -305,21 +347,14 @@ chrome.runtime.onMessage.addListener(
                 return arr
             }
             function buildDataArr(jqObj) {
-                if (chartType === '堆叠图') {
-                    let arr = [];
-                    for (let i = 0; i < jqObj.length; i++) {
-                        arr.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g, '')));
-                        if (count === 0) {
-                            buildTitleArr($(jqObj[i]));
-                        }
-                    }
-                    datas.push(arr);
-                } else {
-                    for (let i = 0; i < jqObj.length; i++) {
-                        data.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g,'')));
+                let arr = [];
+                for (let i = 0; i < jqObj.length; i++) {
+                    arr.push(parseFloat(jqObj[i].innerText.replace(/[^\d.]/g, '')));
+                    if (count === 0) {
                         buildTitleArr($(jqObj[i]));
                     }
                 }
+                datas.push(arr);
             }
             function buildTitleArr(jqObj) {
                 if (jqObj.find('h1,h2,h3,h4,h5,h6').length > 0) {
