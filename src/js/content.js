@@ -381,89 +381,145 @@ chrome.runtime.onMessage.addListener(
             $('a,div,li').removeAttr('href');
             $('body').append($(`
                     <div id="follow">
-                        <div class="extension follow-btn">生成词云</div>
+                        <div class="extension follow-btn" id="follow-btn">生成词云</div>
                     </div>`));
-            let strTemp = '我叫许多与，今年31岁，在这31年中，我活的中规中矩，默默无闻。感谢上帝，没有给我远大的抱负，以至于让我可以心无旁骛的度过我这平凡而又安静的我叫许多与，今年31岁，在这31年中，我活的中规中矩，默默无闻。感谢上帝，没有给我远大的抱负，以至于让我可以心无旁骛的度过我这平凡而又安静的'
-            $.ajax({
-                methods: 'get',
-                url: `https://bird.ioliu.cn/v1?url=http://api.pullword.com/post.php?source=${strTemp}&param1=1&param2=1`,
-                success: function (res) {
-                    let arrr = res.split(':1\r\n')
-                    $('.follow-btn').click(function (e) {
-                        strArr = [];
-                        dataArr = [];
-                        $('html,body').attr('id', 'ovfHidden');
-                        if ($(e.target).attr('id') === 'modal-bg') {
-                            $('html,body').attr('id', '');
-                            $('#modal').remove();
-                        } else if (e.target.tagName === 'text' || e.target.tagName === 'svg' || $(e.target).attr('id') === 'modal-content') {
-                        } else {
-                            let str = e.target.innerText.replace(/[&\|\\\*^.,【】，!！。:“”%$#@\-]/g," ");
-                            let reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
-                            if (reg.test(str)) {
-                                str.replace(/[&\|\\\*^.,【】，!！()（）。:“”%$#@\-]\d+/g,"");
-                                for (let i = 0; i < str.length; i++) {
-                                    strArr.push(str[i])
-                                }
-                            } else {
-                                str.replace(/[&\|\\\*^.,【】，!():"%$#@\-]\d+/g," ");
-                                strArr = str.split(" ")
-                            }
-                            strArr = arrr
-                            for (let i = 0; i < strArr.length; i++) {
-                                count = 0;
-                                for(let j = 0; j < strArr.length; j++) {
-                                    if (strArr[i] === strArr[j]) {
-                                        count++
-                                    }
-                                }
-                                dataArr.push({text: strArr[i], size: count * 30})
-                            }
-                            let hash = {};
-                            dataArr = dataArr.reduce((cur,next) => {
-                                hash[next.text] ? '' : hash[next.text] = true && cur.push(next);
-                                return cur;
-                            },[]); //设置cur默认类型为数组，并且初始值为空的数组
-                            $('body').append($(`
+            let strOfPTag = '';
+            $('p').each((item) => {
+                strOfPTag += $($('p')[item]).text();
+            });
+            let reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
+            if (!reg.test(strOfPTag)) {
+                strOfPTag.replace(/[&\|\\\*^.{},【】，!():"%$#@\-]+\d+\s+/g," ");
+                strArr = strOfPTag.split(" ");
+                for (let i = 0; i < strArr.length; i++) {
+                    count = 0;
+                    for(let j = 0; j < strArr.length; j++) {
+                        if (strArr[i] === strArr[j]) {
+                            count++
+                        }
+                    }
+                    dataArr.push({text: strArr[i], size: count * 20})
+                }
+                let hash = {};
+                dataArr = dataArr.reduce((cur,next) => {
+                    hash[next.text] ? '' : hash[next.text] = true && cur.push(next);
+                    return cur;
+                },[]); //设置cur默认类型为数组，并且初始值为空的数组
+                $('html,body').attr('id', 'ovfHidden');
+                $('body').append($(`
                             <div id="modal">
                                 <div id="modal-bg"></div>
                                 <div id="modal-content" style="overflow: hidden">
                                 </div>
                             </div>`));
-                            let fill = d3.scale.category10();
-                            let layout = d3.layout.cloud()
-                                .size([800, 800])
-                                .words(dataArr)
-                                .padding(5)
-                                .rotate(function() {
-                                    // return ~~(Math.random() * 2) * 90;
-                                    return 0;
-                                })
-                                .font("Impact")
-                                .fontSize(function(d) { return d.size; })
-                                .on("end", draw);
-                            layout.start();
-                            function draw(words) {
-                                d3.select("#modal-content").append("svg")
-                                    .attr("width", layout.size()[0])
-                                    .attr("height", layout.size()[1])
-                                    .append("g")
-                                    .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
-                                    .selectAll("text")
-                                    .data(words)
-                                    .enter().append("text")
-                                    .style("font-size", function(d) { return d.size + "px"; })
-                                    .style("font-family", "Impact")
-                                    .style("fill", function(d, i) { return fill(i); })
-                                    .attr("text-anchor", "middle")
-                                    .attr("transform", function(d) {
-                                        return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-                                    })
-                                    .text(function(d) { return d.text; });
-                            }
-                        }
-                    });
+                let fill = d3.scale.category10();
+                let layout = d3.layout.cloud()
+                    .size([800, 800])
+                    .words(dataArr)
+                    .padding(5)
+                    .rotate(function() {
+                        // return ~~(Math.random() * 2) * 90;
+                        return 0;
+                    })
+                    .font("Impact")
+                    .fontSize(function(d) { return d.size; })
+                    .on("end", draw);
+                layout.start();
+                function draw(words) {
+                    d3.select("#modal-content").append("svg")
+                        .attr("width", layout.size()[0])
+                        .attr("height", layout.size()[1])
+                        .append("g")
+                        .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+                        .selectAll("text")
+                        .data(words)
+                        .enter().append("text")
+                        .style("font-size", function(d) { return d.size + "px"; })
+                        .style("font-family", "Impact")
+                        .style("fill", function(d, i) { return fill(i); })
+                        .attr("text-anchor", "middle")
+                        .attr("transform", function(d) {
+                            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                        })
+                        .text(function(d) { return d.text; });
                 }
-            });
+            } else {
+                strOfPTag = strOfPTag.replace(/\w\d+$/, '');
+                $.ajax({
+                    type: "POST",
+                    url: `https://bird.ioliu.cn/v1`,
+                    data: {
+                        url: `http://api.pullword.com/post.php?source=${strOfPTag}&param1=1&param2=1`
+                    },
+                    success: function (res) {
+                        let arr = res.split(':1\r\n');
+                        $(document).click(function (e) {
+                            strArr = [];
+                            dataArr = [];
+                            $('html,body').attr('id', 'ovfHidden');
+                            if ($(e.target).attr('id') === 'modal-bg') {
+                                $('html,body').attr('id', '');
+                                $('#modal').remove();
+                            } else if (e.target.tagName === 'text' || e.target.tagName === 'svg' || $(e.target).attr('id') === 'modal-content') {
+                            } else if ($(e.target).attr('id') === 'follow-btn') {
+                                strArr = arr;
+                                for (let i = 0; i < strArr.length; i++) {
+                                    count = 0;
+                                    for(let j = 0; j < strArr.length; j++) {
+                                        if (strArr[i] === strArr[j]) {
+                                            count++
+                                        }
+                                    }
+                                    dataArr.push({text: strArr[i], size: count * 20})
+                                }
+                                let hash = {};
+                                dataArr = dataArr.reduce((cur,next) => {
+                                    hash[next.text] ? '' : hash[next.text] = true && cur.push(next);
+                                    return cur;
+                                },[]); //设置cur默认类型为数组，并且初始值为空的数组
+                                $('html,body').attr('id', 'ovfHidden');
+                                $('body').append($(`
+                            <div id="modal">
+                                <div id="modal-bg"></div>
+                                <div id="modal-content" style="overflow: hidden">
+                                </div>
+                            </div>`));
+                                let fill = d3.scale.category10();
+                                let layout = d3.layout.cloud()
+                                    .size([800, 800])
+                                    .words(dataArr)
+                                    .padding(5)
+                                    .rotate(function() {
+                                        // return ~~(Math.random() * 2) * 90;
+                                        return 0;
+                                    })
+                                    .font("Impact")
+                                    .fontSize(function(d) { return d.size; })
+                                    .on("end", draw);
+                                layout.start();
+                                function draw(words) {
+                                    d3.select("#modal-content").append("svg")
+                                        .attr("width", layout.size()[0])
+                                        .attr("height", layout.size()[1])
+                                        .append("g")
+                                        .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+                                        .selectAll("text")
+                                        .data(words)
+                                        .enter().append("text")
+                                        .style("font-size", function(d) { return d.size + "px"; })
+                                        .style("font-family", "Impact")
+                                        .style("fill", function(d, i) { return fill(i); })
+                                        .attr("text-anchor", "middle")
+                                        .attr("transform", function(d) {
+                                            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                                        })
+                                        .text(function(d) { return d.text; });
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
         }
     });
